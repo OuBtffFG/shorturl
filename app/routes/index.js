@@ -2,9 +2,38 @@
 
 var path = process.cwd();
 var ClickHandler = require(path + '/app/controllers/clickHandler.server.js');
+var urls=require(path+'/app/controllers/urlHandler.server.js');
 
 module.exports = function (app, passport) {
+console.log("trying to find the route");
+	app.use('/new/', function (req, res){
+			console.log("need to shorten this url");
+			urls.shorten(req.path.substr(1), function(err, data){
+				if (err){
+					throw err;
+				} else {
+					console.log(data);
+					res.send(data);
+				}
+			});
+		});
 
+	app.route('/:goURL')
+		.all(function (req, res){
+			console.log("need to redirect to a new URL for URLnum: "+req.params.goURL);
+			var uNum=parseInt(req.params.goURL);
+			urls.convert(uNum, function(err, data){
+				if (err){
+					throw err;
+				} else {
+					// returns original url
+					console.log("redirecting to " + data);
+					res.redirect(data);
+				}
+			});
+		});
+		
+/* OLD CODE
 	function isLoggedIn (req, res, next) {
 		if (req.isAuthenticated()) {
 			return next();
@@ -17,6 +46,7 @@ module.exports = function (app, passport) {
 
 	app.route('/')
 		.get(isLoggedIn, function (req, res) {
+			
 			res.sendFile(path + '/public/index.html');
 		});
 
@@ -54,4 +84,5 @@ module.exports = function (app, passport) {
 		.get(isLoggedIn, clickHandler.getClicks)
 		.post(isLoggedIn, clickHandler.addClick)
 		.delete(isLoggedIn, clickHandler.resetClicks);
+*/
 };
